@@ -1,87 +1,95 @@
 package com.lwu.week1;
 
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
+
 public class Percolation {
 
-    private int[][] grid;
-    private static final Integer FULL = 0;
-    private static final Integer OPEN = 1;
+    private boolean[] flag;
+    private final int gridLength;
+    private int openCount;
+    private final WeightedQuickUnionUF weightedQuickUnionUF;
 
-    // create n-by-n grid, with all sites blocked
     public Percolation(int n) {
-        grid = new int[n][n];
+
+        if (n <= 0) {
+            throw new IllegalArgumentException("n should be a number larger than 0");
+        }
+
+        gridLength = n;
+        flag = new boolean[n*n];
+        weightedQuickUnionUF = new WeightedQuickUnionUF(n*n);
+
+        for (int i = 1; i < gridLength; i++) {
+            weightedQuickUnionUF.union(0, i);
+        }
+
+        for (int i = n*(n-1); i < n*n-1; i++) {
+            weightedQuickUnionUF.union(i, n*n-1);
+        }
     }
 
-    // open site (row, col) if it is not open already
     public void open(int row, int col) {
         if (!validate(row, col)) {
             throw new IllegalArgumentException();
         }
-        grid[row-1][col-1] = 1;
+
+        if (isOpen(row, col)) {
+            return;
+        }
+
+        flag[index(row, col)] = true;
+        openCount++;
+
+        if (validate(row-1, col) && isOpen(row-1, col)) {
+            weightedQuickUnionUF.union(index(row, col), index(row-1, col));
+        }
+
+        if (validate(row+1, col) && isOpen(row+1, col)) {
+            weightedQuickUnionUF.union(index(row, col), index(row+1, col));
+        }
+
+        if (validate(row, col-1) && isOpen(row, col-1)) {
+            weightedQuickUnionUF.union(index(row, col), index(row, col-1));
+        }
+
+        if (validate(row, col+1) && isOpen(row, col+1)) {
+            weightedQuickUnionUF.union(index(row, col), index(row, col+1));
+        }
     }
 
-    // is site (row, col) open?
     public boolean isOpen(int row, int col) {
         if (!validate(row, col)) {
             throw new IllegalArgumentException();
         }
-        return grid[row-1][col-1] == OPEN;
+        return flag[index(row, col)];
     }
 
-    // is site (row, col) full?
     public boolean isFull(int row, int col) {
         if (!validate(row, col)) {
             throw new IllegalArgumentException();
         }
-        return grid[row-1][col-1] == FULL;
+
+        return isOpen(row, col) && weightedQuickUnionUF.connected(0, index(row, col));
     }
 
-    // number of open sites
     public int numberOfOpenSites() {
-        int result = 0;
-
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid.length; j++) {
-                result += grid[i][j] == OPEN ? 1 : 0;
-            }
-        }
-
-        return result;
+        return openCount;
     }
 
-    // does the system percolate?
     public boolean percolates() {
-        for (int i = 1; i <= grid.length; i++) {
-            if (percolates(1, i)) {
-                return true;
-            }
-        }
+        return weightedQuickUnionUF.connected(0, gridLength*gridLength-1) && openCount != 0;
+    }
 
-        return false;
+    private int index(int row, int col) {
+        return (row-1)*gridLength + (col-1);
     }
 
     private boolean validate(int row, int col) {
-        if (row < 1 || row > grid.length || col < 1 || col > grid.length) {
+        if (row < 1 || row > gridLength || col < 1 || col > gridLength) {
             return false;
         }
 
         return true;
     }
 
-    private boolean percolates(int row, int col) {
-
-        if (!validate(row, col) || grid[row-1][col-1] == FULL) {
-            return false;
-        }
-
-        if (row == grid.length && grid[row-1][col-1] == OPEN) {
-            return true;
-        }
-
-        return percolates(row-1, col) || percolates(row, col-1) || percolates(row, col+1) || percolates(row+1, col);
-    }
-
-    // test client (optional)
-    public static void main(String[] args) {
-
-    }
 }
