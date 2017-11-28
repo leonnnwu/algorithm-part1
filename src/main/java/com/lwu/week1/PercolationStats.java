@@ -6,7 +6,12 @@ import edu.princeton.cs.algs4.StdStats;
 
 public class PercolationStats {
 
+    private final static double CONFIDENCE_VALUE = 1.96;
     private final double[] threshold;
+    private final double mean;
+    private final double stddev;
+    private final double confidenceLo;
+    private final double confidenceHi;
 
     public PercolationStats(int n, int trials) {
 
@@ -36,22 +41,27 @@ public class PercolationStats {
 
             threshold[i] = percolation.numberOfOpenSites() / (double) (n * n);
         }
+
+        mean = StdStats.mean(threshold);
+        stddev = StdStats.stddev(threshold);
+        confidenceLo = mean() - CONFIDENCE_VALUE * stddev() / Math.sqrt(threshold.length);
+        confidenceHi = mean() + CONFIDENCE_VALUE * stddev() / Math.sqrt(threshold.length);
     }
 
     public double mean() {
-        return StdStats.mean(threshold);
+        return mean;
     }
 
     public double stddev() {
-        return StdStats.stddev(threshold);
+        return stddev;
     }
 
     public double confidenceLo() {
-        return mean() - 1.96 * stddev() / Math.sqrt(threshold.length);
+        return confidenceLo;
     }
 
     public double confidenceHi() {
-        return mean() + 1.96 * stddev() / Math.sqrt(threshold.length);
+        return confidenceHi;
     }
 
     public static void main(String[] args) {

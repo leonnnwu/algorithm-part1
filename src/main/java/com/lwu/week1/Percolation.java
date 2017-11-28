@@ -8,6 +8,7 @@ public class Percolation {
     private final int gridLength;
     private int openCount;
     private final WeightedQuickUnionUF weightedQuickUnionUF;
+    private final WeightedQuickUnionUF weightedQuickUnionUFBackWash;
 
     public Percolation(int n) {
 
@@ -18,9 +19,11 @@ public class Percolation {
         gridLength = n;
         flag = new boolean[n*n];
         weightedQuickUnionUF = new WeightedQuickUnionUF(n*n);
+        weightedQuickUnionUFBackWash = new WeightedQuickUnionUF(n*n);
 
         for (int i = 1; i < gridLength; i++) {
             weightedQuickUnionUF.union(0, i);
+            weightedQuickUnionUFBackWash.union(0, i);
         }
 
         for (int i = n*(n-1); i < n*n-1; i++) {
@@ -42,18 +45,22 @@ public class Percolation {
 
         if (validate(row-1, col) && isOpen(row-1, col)) {
             weightedQuickUnionUF.union(index(row, col), index(row-1, col));
+            weightedQuickUnionUFBackWash.union(index(row, col), index(row-1, col));
         }
 
         if (validate(row+1, col) && isOpen(row+1, col)) {
             weightedQuickUnionUF.union(index(row, col), index(row+1, col));
+            weightedQuickUnionUFBackWash.union(index(row, col), index(row+1, col));
         }
 
         if (validate(row, col-1) && isOpen(row, col-1)) {
             weightedQuickUnionUF.union(index(row, col), index(row, col-1));
+            weightedQuickUnionUFBackWash.union(index(row, col), index(row, col-1));
         }
 
         if (validate(row, col+1) && isOpen(row, col+1)) {
             weightedQuickUnionUF.union(index(row, col), index(row, col+1));
+            weightedQuickUnionUFBackWash.union(index(row, col), index(row, col+1));
         }
     }
 
@@ -69,7 +76,7 @@ public class Percolation {
             throw new IllegalArgumentException();
         }
 
-        return isOpen(row, col) && weightedQuickUnionUF.connected(0, index(row, col));
+        return isOpen(row, col) && weightedQuickUnionUFBackWash.connected(0, index(row, col));
     }
 
     public int numberOfOpenSites() {
